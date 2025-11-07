@@ -13,3 +13,4 @@ DATABASE_PATH = 'workouts.db'
 
 # API endpoints
 STRAVA_ACTIVITIES_URL = 'https://www.strava.com/api/v3/activities'
+

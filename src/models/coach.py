@@ -2,24 +2,25 @@ import ollama
 
 
 class Coach:
-    def __init__(self, past_workouts, behaviour):
-        self.past_workouts = past_workouts  
-        self.behaviour = behaviour  
+    def __init__(self, past_workouts, persona):
+        self.past_workouts = past_workouts
+        self.persona = persona
 
     def respond(self, request):
 
-        context_prompt = f"""You are a track and field coach for a runner.
-                        You are asked to respond to athlete requests by
-                        analysing his past workouts. Be professional and clear,
-                        talk directly to the athlete as "you".
-                        Make it conversation-like
-                        Use past workouts :
+        context_prompt = f"""
+                        You are playing the role of {self.persona} as a track and
+                        field coach for a runner. You are asked to respond to athlete 
+                        requests by analysing his past workouts. Be professional and clear,
+                        talk directly to the athlete as "you". You must reason and 
+                        talk {self.persona}, add expressions, mimics and think like him/her.
+                        Make it conversation-like with the athlete. 
+                        Use past workouts for records :
                         {self.past_workouts}.
                         Your response should be very closely linked to the past
                         workouts, use stats, numbers to illustrate your
-                        arguments.
-                        You must reason and talk with the following behaviour:
-                        {self.behaviour}"""
+                        arguments."""
+
         user_prompt = f"{request}"
 
         response = ollama.chat(

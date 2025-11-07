@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Choose your coach</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: white;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        .back-button {
+            background-color: #6c757d;
+            color: white;
+            padding: 10px 20px;
+            text-decoration: none;
+            border-radius: 4px;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+        .back-button:hover {
+            background-color: #5a6268;
+        }
+        .coaches-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        .coach-card {
+            display: flex;
+            align-items: center;
+            padding: 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background-color: #fafafa;
+        }
+        .coach-card:hover {
+            border-color: #007bff;
+            background-color: #f8f9ff;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,123,255,0.1);
+        }
+        .coach-card.selected {
+            border-color: #28a745;
+            background-color: #f8fff8;
+        }
+        .coach-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            margin-right: 20px;
+            background-color: #ddd;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            overflow: hidden;
+        }
+        .coach-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+        .coach-info {
+            flex: 1;
+        }
+        .coach-name {
+            font-size: 20px;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 8px;
+        }
+        .coach-specialty {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        .coach-description {
+            font-size: 14px;
+            color: #555;
+            line-height: 1.4;
+        }
+        .select-button {
+            background-color: #007bff;
+            color: white;
+            padding: 12px 30px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 20px;
+            width: 100%;
+        }
+        .select-button:hover {
+            background-color: #0056b3;
+        }
+        .select-button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-button">← Back to Dashboard</a>
+        <h1>Choose Your Coach</h1>
+        
+        <div class="coaches-grid">
+            <div class="coach-card" onclick="selectCoach('canova')">
+                <div class="coach-image">
+                    <img src="/static/renato_canova.png" alt="Renato Canova">
+                </div>
+                <div class="coach-info">
+                    <div class="coach-name">Renato Canova</div>
+                    <div class="coach-specialty">World-Class Distance Coach</div>
+                    <div class="coach-description">
+                        Legendary Italian coach who has trained Olympic champions and world record holders. 
+                        Known for his scientific approach to high-altitude training and periodization.
+                    </div>
+                </div>
+            </div>
+
+            <div class="coach-card" onclick="selectCoach('analytical')">
+                <div class="coach-image"><img src="/static/patrick_sang.png" alt="Patrick Sang"></div>
+                <div class="coach-info">
+                    <div class="coach-name">Coach Patrick Sang</div>
+                    <div class="coach-specialty">Elite Kenyan Coach & Mindful Leader</div>
+                    <div class="coach-description">
+                        The calm mastermind behind Kenya’s greatest champions, including Eliud Kipchoge. 
+                        A former Olympic medalist himself, he combines wisdom, humility, and mental discipline to build athletes who 
+                        embody consistency, focus, and excellence.
+                    </div>
+                </div>
+            </div>
+
+            <div class="coach-card" onclick="selectCoach('tough')">
+                <div class="coach-image"><img src="/static/paula_radcliffe.png" alt="Paula Radcliffe"></div>
+                <div class="coach-info">
+                    <div class="coach-name">Coach Paula</div>
+                    <div class="coach-specialty">Marathon Legend & Performance Mentor</div>
+                    <div class="coach-description">
+                        Record-breaking marathon legend and one of the toughest runners in history. 
+                        Known for her fierce determination and analytical coaching style, 
+                        she now inspires athletes to push through pain barriers and run with 
+                        heart and precision.
+                    </div>
+                </div>
+            </div>
+
+            <div class="coach-card" onclick="selectCoach('balanced')">
+                <div class="coach-image"><img src="/static/mo_farah.png" alt="Mo Farah"></div>
+                <div class="coach-info">
+                    <div class="coach-name">Coach Mo</div>
+                    <div class="coach-specialty">Olympic Champion & Speed Strategist</div>
+                    <div class="coach-description">
+                        Iconic British distance runner turned coach, famous for his double Olympic golds and trademark finishing kick. 
+                        He brings charisma, strategy, and fun to the track, teaching athletes how to blend speed and endurance with a champion’s mindset.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <button id="selectButton" class="select-button" onclick="confirmSelection()" disabled>
+            Select This Coach
+        </button>
+    </div>
+
+    <script>
+        let selectedCoach = null;
+
+        function selectCoach(coachType) {
+            document.querySelectorAll('.coach-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            
+            event.currentTarget.classList.add('selected');
+            selectedCoach = coachType;
+            
+            document.getElementById('selectButton').disabled = false;
+        }
+
+        function confirmSelection() {
+            if (selectedCoach) {
+                localStorage.setItem('selectedCoach', selectedCoach);
+                alert(`You selected ${getCoachName(selectedCoach)}! Redirecting back to dashboard...`);
+                window.location.href = '/';
+            }
+        }
+
+        function getCoachName(coachType) {
+            const names = {
+                'canova': 'Renato Canova',
+                'analytical': 'Coach Analytics', 
+                'tough': 'Coach Tough Love',
+                'balanced': 'Coach Balance'
+            };
+            return names[coachType] || 'Unknown Coach';
+        }
+
+        window.onload = function() {
+            const savedCoach = localStorage.getItem('selectedCoach');
+            if (savedCoach) {
+                const cards = document.querySelectorAll('.coach-card');
+                const coaches = ['canova', 'analytical', 'tough', 'balanced'];
+                const index = coaches.indexOf(savedCoach);
+                if (index >= 0) {
+                    cards[index].classList.add('selected');
+                    selectedCoach = savedCoach;
+                    document.getElementById('selectButton').disabled = false;
+                }
+            }
+        };
+    </script>
+</body>
+</html>

@@ -38,6 +38,15 @@
         .chat-button:hover {
             background-color: #0056b3;
         }
+
+        .coaches-button {
+            background-color: #28a745;
+            padding: 10px 15px;
+        }
+        
+        .coaches-button:hover {
+            background-color: #218838;
+        }
         .chat-response {
             background-color: #f8f9fa;
             border: 1px solid #dee2e6;
@@ -64,19 +73,22 @@
             <th>Distance (km)</th>
             <th>Elapsed Time</th>
             <th>Moving Time</th>
-            <th>Tot elevation gain</th>
-            <th>Average Speed</th>
-            <th>Max Speed </th>
-            <th>Average HR</th>
-            <th>Max HR</th>
+            <th>Tot elevation gain (m)</th>
+            <th>Average Speed (km/h)</th>
+            <th>Max Speed (km/h) </th>
+            <th>Average BPM</th>
+            <th>Max BPM</th>
         </tr>
     </table>
 
     <div class="coach-section">
         <h2> Ask Your AI Coach</h2>
         <div class="chat-container">
-            <input type="text" id="chatInput" class="chat-input" placeholder="Ask about your training... (e.g., 'How is my weekly mileage?')" />
-            <button onclick="askCoach()" class="chat-button">Ask Coach</button>
+            <div class="chat-controls">
+                <input type="text" id="chatInput" class="chat-input" placeholder="Ask about your training... (e.g., 'How is my weekly mileage?')" />
+                <button onclick="askCoach()" class="chat-button">Ask Coach</button>
+                <a href="/coaches" class="chat-button coaches-button">Choose Coach</a>
+            </div>
             <div id="chatResponse" class="chat-response" style="display: none;"></div>
         </div>
     </div>
