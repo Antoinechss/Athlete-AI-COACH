@@ -6,6 +6,7 @@ from strava_api import StravaAPI
 from database import WorkoutDatabase 
 from config.settings import DATABASE_PATH
 from models.workout import Workout
+from models.coach import Coach
 
 
 def main():
@@ -28,10 +29,15 @@ def main():
     print("All workouts added to the database")
 
     ###### DISPLAY CONTENT OF DB ######
-    print("Content of DB : ")
+    print("Your past workouts analyzed by coach: ")
     database_workout_content = db.get_all()
     for w in database_workout_content:
         print(f"name: {w.name}, type: {w.type}, distance: {w.distance}")
+
+    ###### init the AI coach and ask for first question ######
+    user_request = str(input("What do you want to ask coach ?"))
+    coach = Coach(database_workout_content, behaviour="Encouraging and soft")
+    print(coach.respond(user_request))
 
 
 if __name__ == "__main__": 
