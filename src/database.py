@@ -70,6 +70,15 @@ class WorkoutDatabase:
 
         workouts = []
         for w in workouts_data:
+            # Convert string back to datetime object
+            try:
+                if isinstance(w[3], str):
+                    start_date = datetime.fromisoformat(w[3].replace('Z', '+00:00'))
+                else:
+                    start_date = w[3]
+            except (ValueError, AttributeError):
+                start_date = datetime.now()  # Fallback
+
             act = Workout(
                 id=w[0],
                 name=w[1],
@@ -88,4 +97,62 @@ class WorkoutDatabase:
         connection.close()
         return workouts
     
+    def get_formatted_summary(self):
+        """Format the data from the workouts before coach's analysis"""
+        workouts = self.get_all()
+        formatted_workouts = []
+
+        for workout in workouts : 
+            # Dealing with elapsed time 
+            elapsed_minutes = workout.elapsed_time // 60 if workout.elapsed_time else 0
+            elapsed_hours = elapsed_minutes // 60
+            elapsed_mins_remaining = elapsed_minutes % 60
+            
+            if elapsed_hours > 0:
+                time_str = f"{elapsed_hours}h {elapsed_mins_remaining}m"
+            else:
+                time_str = f"{elapsed_mins_remaining}m"
+
+            # Distance --> convert to kms 
+            distance_km = round(workout.distance / 1000, 2) if workout.distance else 0
+
+            # Pace (min/km)
+            if workout.distance and workout.moving_time:
+                pace_seconds_per_km = (workout.moving_time / (workout.distance / 1000))
+                pace_minutes = int(pace_seconds_per_km // 60)
+                pace_seconds = int(pace_seconds_per_km % 60)
+                pace_str = f"{pace_minutes}:{pace_seconds:02d}/km"
+            else:
+                pace_str = "unknown pace"
+
+            # Date - safely handle both datetime objects and strings
+            try:
+                if hasattr(workout.start_date, 'strftime'):
+                    date_str = workout.start_date.strftime('%Y-%m-%d')
+                elif isinstance(workout.start_date, str):
+                    # Try to parse the string and format it
+                    dt = datetime.fromisoformat(workout.start_date.replace('Z', '+00:00'))
+                    date_str = dt.strftime('%Y-%m-%d')
+                else:
+                    date_str = str(workout.start_date)[:10]  # Take first 10 chars (YYYY-MM-DD)
+            except (ValueError, AttributeError):
+                date_str = "unknown date"
+
+            # Build summary
+            workout_summary = f"{date_str} - {workout.name}: {workout.type}, {distance_km}km in {time_str}, pace {pace_str}"
+            
+            # Add heart rate if available
+            if workout.average_heartrate:
+                workout_summary += f", avg HR {int(workout.average_heartrate)}bpm"
+            
+            # Add elevation if significant
+            if workout.total_elevation_gain and workout.total_elevation_gain > 20:
+                workout_summary += f", elevation gain {int(workout.total_elevation_gain)}m"
+            
+            formatted_workouts.append(workout_summary)
+        
+        return formatted_workouts
+
+
+
     

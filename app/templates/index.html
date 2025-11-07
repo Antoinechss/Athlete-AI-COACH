@@ -3,9 +3,153 @@
 <head>
     <title>My Workouts</title>
     <style>
-        table { border-collapse: collapse; width: 100%; margin-bottom: 30px; }
-        th, td { border: 1px solid black; padding: 8px; text-align: left; }
-        th { background-color: #f2f2f2; }
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #2c3e50;
+            margin-bottom: 30px;
+            font-size: 2.5em;
+        }
+        
+        .workouts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .workout-card {
+            perspective: 1000px;
+            height: 250px;
+            cursor: pointer;
+        }
+        
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+        
+        .workout-card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+        
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            padding: 20px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        
+        .card-front {
+            background: linear-gradient(135deg, #34f1ff 0%, #248187 100%);
+            color: white;
+        }
+        
+        .card-back {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            transform: rotateY(180deg);
+        }
+        
+        .workout-type {
+            font-size: 1.1em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .workout-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 15px;
+            line-height: 1.3;
+        }
+        
+        .workout-main-stats {
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            background: rgba(255,255,255,0.2);
+            border-radius: 10px;
+            padding: 15px;
+        }
+        
+        .stat {
+            text-align: center;
+        }
+        
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            display: block;
+        }
+        
+        .stat-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+        
+        .workout-date {
+            font-size: 0.9em;
+            opacity: 0.8;
+            align-self: flex-start;
+        }
+        
+        .card-back-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            height: 100%;
+        }
+        
+        .detail-item {
+            background: rgba(255,255,255,0.2);
+            padding: 10px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .detail-label {
+            font-size: 0.8em;
+            opacity: 0.8;
+            margin-bottom: 5px;
+        }
+        
+        .detail-value {
+            font-size: 1.1em;
+            font-weight: bold;
+        }
+        
+        .flip-hint {
+            position: absolute;
+            bottom: 10px;
+            right: 15px;
+            font-size: 0.8em;
+            opacity: 0.7;
+        }
         
         .coach-section {
             border-top: 2px solid #333;
@@ -18,8 +162,15 @@
             margin: 0 auto;
         }
         
+        .chat-controls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
         .chat-input {
-            width: 70%;
+            flex: 1;
             padding: 10px;
             border: 1px solid #ccc;
             border-radius: 4px;
@@ -32,13 +183,14 @@
             border: none;
             border-radius: 4px;
             cursor: pointer;
-            margin-left: 10px;
+            text-decoration: none;
+            display: inline-block;
         }
         
         .chat-button:hover {
             background-color: #0056b3;
         }
-
+        
         .coaches-button {
             background-color: #28a745;
             padding: 10px 15px;
@@ -47,6 +199,7 @@
         .coaches-button:hover {
             background-color: #218838;
         }
+        
         .chat-response {
             background-color: #f8f9fa;
             border: 1px solid #dee2e6;
@@ -61,66 +214,161 @@
             font-style: italic;
         }
         
+        #currentCoach {
+            margin-bottom: 15px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 4px;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
-    <h1>Your latest workouts</h1>
-    <table id="workoutsTable">
-        <tr>
-            <th>Start Date</th>
-            <th>Name</th>
-            <th>Type</th>
-            <th>Distance (km)</th>
-            <th>Elapsed Time</th>
-            <th>Moving Time</th>
-            <th>Tot elevation gain (m)</th>
-            <th>Average Speed (km/h)</th>
-            <th>Max Speed (km/h) </th>
-            <th>Average BPM</th>
-            <th>Max BPM</th>
-        </tr>
-    </table>
+    <div class="container">
+        <h1> Your Latest Workouts</h1>
+        
+        <!-- Workouts Grid -->
+        <div class="workouts-grid" id="workoutsGrid">
+        </div>
 
-    <div class="coach-section">
-        <h2> Ask Your AI Coach</h2>
-        <div class="chat-container">
-            <div class="chat-controls">
-                <input type="text" id="chatInput" class="chat-input" placeholder="Ask about your training... (e.g., 'How is my weekly mileage?')" />
-                <button onclick="askCoach()" class="chat-button">Ask Coach</button>
-                <a href="/coaches" class="chat-button coaches-button">Choose Coach</a>
+        <!-- AI Coach Section -->
+        <div id="currentCoach" style="display: flex; align-items: center; gap: 15px; margin-bottom: 15px; padding: 15px; background-color: #e9ecef; border-radius: 8px;">
+            <div id="coachImageContainer" style="width: 60px; height: 60px; border-radius: 12px; background-color: #ddd; display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0;">
+                <img id="coachImage" src="" alt="Coach" style="width: 100%; height: 100%; object-fit: cover; border-radius: 12px; display: none;">
             </div>
-            <div id="chatResponse" class="chat-response" style="display: none;"></div>
+            <div>
+                <div style="font-size: 16px; font-weight: bold; margin-bottom: 5px;">
+                    Ask <span id="coachName">Loading...</span>
+                </div>
+            </div>
+        </div>
+        <div class="coach-section">
+            <div class="chat-container">
+                <div><h2>Ask <span id="coachName"></span></h2></div>
+                <div class="chat-controls">
+                    <input type="text" id="chatInput" class="chat-input" placeholder="Chat with coach" />
+                    <button onclick="askCoach()" class="chat-button">Ask Coach</button>
+                    <a href="/coaches" class="chat-button coaches-button">Choose Coach</a>
+                </div>
+                <div id="chatResponse" class="chat-response" style="display: none;"></div>
+            </div>
         </div>
     </div>
 
     <script>
-        console.log("Loading workouts...");
+        // Load workouts and create cards
         fetch('/api/workouts')
-            .then(response => {
-                console.log("Response received:", response);
-                return response.json();
-            })
+            .then(response => response.json())
             .then(workouts => {
-                console.log("Workouts data:", workouts);
-                const table = document.getElementById('workoutsTable');
+                const grid = document.getElementById('workoutsGrid');
                 workouts.forEach(workout => {
-                    const row = table.insertRow();
-                    row.insertCell(0).innerHTML = workout.start_date;
-                    row.insertCell(1).innerHTML = workout.name;
-                    row.insertCell(2).innerHTML = workout.type;
-                    row.insertCell(3).innerHTML = workout.distance;
-                    row.insertCell(4).innerHTML = workout.elapsed_time;
-                    row.insertCell(5).innerHTML = workout.moving_time;
-                    row.insertCell(6).innerHTML = workout.total_elevation_gain;
-                    row.insertCell(7).innerHTML = workout.average_speed;
-                    row.insertCell(8).innerHTML = workout.max_speed;
-                    row.insertCell(9).innerHTML = workout.average_heartrate;
-                    row.insertCell(10).innerHTML = workout.max_heartrate;
+                    const card = createWorkoutCard(workout);
+                    grid.appendChild(card);
                 });
             })
             .catch(error => {
-                console.error("Error:", error);
+                console.error("Error loading workouts:", error);
             });
+
+        // Load selected coach info
+        fetch('/api/get-selected-coach')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('coachName').innerHTML = data.coach_name;
+                
+                const coachImage = document.getElementById('coachImage');
+                
+                // Map of coach types to their image paths
+                const coachImages = {
+                    'canova': '/static/renato_canova.png',
+                    'sang': '/static/patrick_sang.png',
+                    'paula': '/static/paula_radcliffe.png',
+                    'mo': '/static/mo_farah.png'
+                };
+                
+                // Show the appropriate coach image
+                if (coachImages[data.coach_type]) {
+                    coachImage.src = coachImages[data.coach_type];
+                    coachImage.style.display = 'block';
+                } else {
+                    // Fallback if coach type not found
+                    coachImage.style.display = 'none';
+                }
+            });
+
+        function createWorkoutCard(workout) {
+            const cardDiv = document.createElement('div');
+            cardDiv.className = 'workout-card';
+            cardDiv.onclick = () => flipCard(cardDiv);
+
+            cardDiv.innerHTML = `
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="workout-date">${formatDate(workout.start_date)}</div>
+                        <div class="workout-type">${workout.type}</div>
+                        <div class="workout-name">${workout.name}</div>
+                        <div class="workout-main-stats">
+                            <div class="stat">
+                                <span class="stat-value">${workout.distance}</span>
+                                <div class="stat-label">km</div>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value">${workout.elapsed_time}</span>
+                                <div class="stat-label">time</div>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-value">${workout.average_heartrate || '--'}</span>
+                                <div class="stat-label">avg HR</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-back-content">
+                            <div class="detail-item">
+                                <div class="detail-label">Moving Time</div>
+                                <div class="detail-value">${workout.moving_time}</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Elevation Gain</div>
+                                <div class="detail-value">${workout.total_elevation_gain}m</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Avg Speed</div>
+                                <div class="detail-value">${workout.average_speed} km/h</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Max Speed</div>
+                                <div class="detail-value">${workout.max_speed} km/h</div>
+                            </div>
+                            <div class="detail-item">
+                                <div class="detail-label">Max HR</div>
+                                <div class="detail-value">${workout.max_heartrate || '--'} bpm</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            return cardDiv;
+        }
+
+        function flipCard(card) {
+            card.classList.toggle('flipped');
+        }
+
+        function formatDate(dateStr) {
+            try {
+                const date = new Date(dateStr);
+                return date.toLocaleDateString('en-US', { 
+                    month: 'short', 
+                    day: 'numeric',
+                    year: 'numeric'
+                });
+            } catch (e) {
+                return dateStr;
+            }
+        }
+
         // Coach chat functionality
         function askCoach() {
             const input = document.getElementById('chatInput');
@@ -132,11 +380,9 @@
                 return;
             }
             
-            // Show loading
             responseDiv.style.display = 'block';
             responseDiv.innerHTML = '<div class="loading">Coach is analyzing your workouts...</div>';
             
-            // Send question to coach API
             fetch('/api/coach', {
                 method: 'POST',
                 headers: {
@@ -149,9 +395,9 @@
                 if (data.error) {
                     responseDiv.innerHTML = `<strong>Error:</strong> ${data.error}`;
                 } else {
-                    responseDiv.innerHTML = `<strong>Coach:</strong> ${data.response}`;
+                    responseDiv.innerHTML = `<strong>${data.coach_name}:</strong> ${data.response}`;
                 }
-                input.value = ''; // Clear input
+                input.value = '';
             })
             .catch(error => {
                 responseDiv.innerHTML = `<strong>Error:</strong> Failed to connect to coach`;
@@ -159,7 +405,6 @@
             });
         }
         
-        // Allow Enter key to submit
         document.getElementById('chatInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 askCoach();

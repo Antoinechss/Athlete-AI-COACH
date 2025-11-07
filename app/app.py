@@ -55,7 +55,7 @@ def coach_choice():
 def select_coach():
     """Store the selected coach in the current session"""
     data = request.get_json()
-    coach_persona = data.get('coach_persona')
+    coach_persona = data.get('coach_persona')  # Keep this as is
     
     if coach_persona in COACH_PERSONALITIES:
         session['selected_coach'] = coach_persona
@@ -66,13 +66,13 @@ def select_coach():
     else:
         return jsonify({
             "success": False, 
-            "error": "Invalid coach selection"
+            "error": f"Invalid coach selection: {coach_persona}"
         })
 
 @app.route('/api/get-selected-coach')
 def get_selected_coach():
     """Get the currently selected coach"""
-    selected_coach = session.get('selected_coach', DEFAULT_COACH)  # Use Renato as default
+    selected_coach = session.get('selected_coach', DEFAULT_COACH)  
     coach_info = COACH_PERSONALITIES.get(selected_coach, COACH_PERSONALITIES[DEFAULT_COACH])
     return jsonify({
         "coach_type": selected_coach,
@@ -97,11 +97,12 @@ def ask_coach():
         # Get workouts from database for context 
         db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'workouts.db')
         db = WorkoutDatabase(db_path)
-        workouts = db.get_all()
+        workouts = db.get_formatted_summary()[:10]
+        
 
         # Create coach & answer question
         coach = Coach(past_workouts=workouts,
-                      behaviour=coach_personality['behaviour'])
+                      persona=coach_personality['behaviour'])
         response = coach.respond(user_question)
         
         return jsonify({

@@ -135,7 +135,7 @@
                 </div>
             </div>
 
-            <div class="coach-card" onclick="selectCoach('analytical')">
+            <div class="coach-card" onclick="selectCoach('sang')">
                 <div class="coach-image"><img src="/static/patrick_sang.png" alt="Patrick Sang"></div>
                 <div class="coach-info">
                     <div class="coach-name">Coach Patrick Sang</div>
@@ -148,7 +148,7 @@
                 </div>
             </div>
 
-            <div class="coach-card" onclick="selectCoach('tough')">
+            <div class="coach-card" onclick="selectCoach('paula')">
                 <div class="coach-image"><img src="/static/paula_radcliffe.png" alt="Paula Radcliffe"></div>
                 <div class="coach-info">
                     <div class="coach-name">Coach Paula</div>
@@ -162,7 +162,7 @@
                 </div>
             </div>
 
-            <div class="coach-card" onclick="selectCoach('balanced')">
+            <div class="coach-card" onclick="selectCoach('mo')">
                 <div class="coach-image"><img src="/static/mo_farah.png" alt="Mo Farah"></div>
                 <div class="coach-info">
                     <div class="coach-name">Coach Mo</div>
@@ -193,37 +193,63 @@
             
             document.getElementById('selectButton').disabled = false;
         }
-
         function confirmSelection() {
             if (selectedCoach) {
-                localStorage.setItem('selectedCoach', selectedCoach);
-                alert(`You selected ${getCoachName(selectedCoach)}! Redirecting back to dashboard...`);
-                window.location.href = '/';
+                console.log('Sending coach selection:', selectedCoach);
+                
+                fetch('/api/select-coach', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ coach_persona: selectedCoach })
+                })
+                .then(response => {
+                    console.log('Response status:', response.status);
+                    return response.json();
+                })
+                .then(data => {
+                    console.log('Response data:', data);
+                    if (data.success) {
+                        alert(`You selected ${data.coach_name}! Redirecting back to dashboard...`);
+                        window.location.href = '/';
+                    } else {
+                        alert(`Error: ${data.error}`);
+                    }
+                })
+                .catch(error => {
+                    console.error('Fetch error:', error);
+                    alert('Network error. Please try again.');
+                });
             }
         }
-
         function getCoachName(coachType) {
             const names = {
                 'canova': 'Renato Canova',
-                'analytical': 'Coach Analytics', 
-                'tough': 'Coach Tough Love',
-                'balanced': 'Coach Balance'
+                'sang': 'Patrick Sang',
+                'paula': 'Paula Radcliffe',
+                'mo': 'Mo Farah'
             };
             return names[coachType] || 'Unknown Coach';
         }
 
         window.onload = function() {
-            const savedCoach = localStorage.getItem('selectedCoach');
-            if (savedCoach) {
-                const cards = document.querySelectorAll('.coach-card');
-                const coaches = ['canova', 'analytical', 'tough', 'balanced'];
-                const index = coaches.indexOf(savedCoach);
-                if (index >= 0) {
-                    cards[index].classList.add('selected');
-                    selectedCoach = savedCoach;
-                    document.getElementById('selectButton').disabled = false;
-                }
-            }
+            // Get currently selected coach from server
+            fetch('/api/get-selected-coach')
+                .then(response => response.json())
+                .then(data => {
+                    const coaches = ['canova', 'sang', 'paula', 'mo'];
+                    const index = coaches.indexOf(data.coach_type);
+                    if (index >= 0) {
+                        const cards = document.querySelectorAll('.coach-card');
+                        cards[index].classList.add('selected');
+                        selectedCoach = data.coach_type;
+                        document.getElementById('selectButton').disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading selected coach:', error);
+                });
         };
     </script>
 </body>
