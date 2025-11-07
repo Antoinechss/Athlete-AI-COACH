@@ -1,1 +1,33 @@
 <!DOCTYPE html>
+<html>
+    <head> 
+        <title> Workouts </title>    
+        <style>
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid black; padding: 8px; text-align: left; }
+            th { background-color: #f2f2f2; }
+        </style>
+    </head>
+    <body>
+        <table id="workouts table">
+            <tr>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Distance</th>
+            </tr>
+        </table>
+        <script>
+            fetch('/api/workouts')
+                .then(response => response.json())
+                .then(workouts => {
+                    const table = document.getElementById('workoutsTable');
+                    workouts.forEach(workout => {
+                        const row = table.insertRow();
+                        row.insertCell(0).innerHTML = workout.name;
+                        row.insertCell(1).innerHTML = workout.type;
+                        row.insertCell(2).innerHTML = workout.distance;
+                    });
+                });
+        </script>
+    </body>
+</html>
