@@ -1,33 +1,158 @@
 <!DOCTYPE html>
 <html>
-    <head> 
-        <title> Workouts </title>    
-        <style>
-            table { border-collapse: collapse; width: 100%; }
-            th, td { border: 1px solid black; padding: 8px; text-align: left; }
-            th { background-color: #f2f2f2; }
-        </style>
-    </head>
-    <body>
-        <table id="workouts table">
-            <tr>
-                <th>Name</th>
-                <th>Type</th>
-                <th>Distance</th>
-            </tr>
-        </table>
-        <script>
-            fetch('/api/workouts')
-                .then(response => response.json())
-                .then(workouts => {
-                    const table = document.getElementById('workoutsTable');
-                    workouts.forEach(workout => {
-                        const row = table.insertRow();
-                        row.insertCell(0).innerHTML = workout.name;
-                        row.insertCell(1).innerHTML = workout.type;
-                        row.insertCell(2).innerHTML = workout.distance;
-                    });
+<head>
+    <title>My Workouts</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; margin-bottom: 30px; }
+        th, td { border: 1px solid black; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        
+        .coach-section {
+            border-top: 2px solid #333;
+            padding-top: 20px;
+            margin-top: 30px;
+        }
+        
+        .chat-container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        
+        .chat-input {
+            width: 70%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        
+        .chat-button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        
+        .chat-button:hover {
+            background-color: #0056b3;
+        }
+        .chat-response {
+            background-color: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            margin-top: 15px;
+            white-space: pre-wrap;
+        }
+        
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+        
+    </style>
+</head>
+<body>
+    <h1>Your latest workouts</h1>
+    <table id="workoutsTable">
+        <tr>
+            <th>Start Date</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Distance (km)</th>
+            <th>Elapsed Time</th>
+            <th>Moving Time</th>
+            <th>Tot elevation gain</th>
+            <th>Average Speed</th>
+            <th>Max Speed </th>
+            <th>Average HR</th>
+            <th>Max HR</th>
+        </tr>
+    </table>
+
+    <div class="coach-section">
+        <h2> Ask Your AI Coach</h2>
+        <div class="chat-container">
+            <input type="text" id="chatInput" class="chat-input" placeholder="Ask about your training... (e.g., 'How is my weekly mileage?')" />
+            <button onclick="askCoach()" class="chat-button">Ask Coach</button>
+            <div id="chatResponse" class="chat-response" style="display: none;"></div>
+        </div>
+    </div>
+
+    <script>
+        console.log("Loading workouts...");
+        fetch('/api/workouts')
+            .then(response => {
+                console.log("Response received:", response);
+                return response.json();
+            })
+            .then(workouts => {
+                console.log("Workouts data:", workouts);
+                const table = document.getElementById('workoutsTable');
+                workouts.forEach(workout => {
+                    const row = table.insertRow();
+                    row.insertCell(0).innerHTML = workout.start_date;
+                    row.insertCell(1).innerHTML = workout.name;
+                    row.insertCell(2).innerHTML = workout.type;
+                    row.insertCell(3).innerHTML = workout.distance;
+                    row.insertCell(4).innerHTML = workout.elapsed_time;
+                    row.insertCell(5).innerHTML = workout.moving_time;
+                    row.insertCell(6).innerHTML = workout.total_elevation_gain;
+                    row.insertCell(7).innerHTML = workout.average_speed;
+                    row.insertCell(8).innerHTML = workout.max_speed;
+                    row.insertCell(9).innerHTML = workout.average_heartrate;
+                    row.insertCell(10).innerHTML = workout.max_heartrate;
                 });
-        </script>
-    </body>
+            })
+            .catch(error => {
+                console.error("Error:", error);
+            });
+        // Coach chat functionality
+        function askCoach() {
+            const input = document.getElementById('chatInput');
+            const responseDiv = document.getElementById('chatResponse');
+            const question = input.value.trim();
+            
+            if (!question) {
+                alert('Please enter a question!');
+                return;
+            }
+            
+            // Show loading
+            responseDiv.style.display = 'block';
+            responseDiv.innerHTML = '<div class="loading">Coach is analyzing your workouts...</div>';
+            
+            // Send question to coach API
+            fetch('/api/coach', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ question: question })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    responseDiv.innerHTML = `<strong>Error:</strong> ${data.error}`;
+                } else {
+                    responseDiv.innerHTML = `<strong>Coach:</strong> ${data.response}`;
+                }
+                input.value = ''; // Clear input
+            })
+            .catch(error => {
+                responseDiv.innerHTML = `<strong>Error:</strong> Failed to connect to coach`;
+                console.error('Error:', error);
+            });
+        }
+        
+        // Allow Enter key to submit
+        document.getElementById('chatInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                askCoach();
+            }
+        });
+    </script>
+</body>
 </html>
