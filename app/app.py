@@ -1,56 +1,17 @@
-from flask import Flask, render_template, jsonify, request, session, redirect, url_for
+from flask import Flask, render_template, jsonify, request, session
 import sys
+import requests
 import os
-from functools import wraps
 from src.strava_api import StravaAPI
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.database import WorkoutDatabase
-from config.settings import DATABASE_PATH
 from config.personas import COACH_PERSONALITIES
 from src.models.coach import Coach 
 
 app = Flask(__name__)
-app.secret_key = 'Antoine'
+app.secret_key = 'olympus-secret-key' 
 
-# Login 
-
-def simple_check(username, password):
-    """Credential check"""
-    users = {
-        'user1': 'user1password', 
-        'user2': 'user2password',
-        'user3': 'user3password',
-    }
-    return users.get(username) == password
-
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            return redirect(url_for('login'))
-        return f(*args, **kwargs)
-    return decorated_function
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        
-        if simple_check(username, password):
-            session['user_id'] = username
-            session['username'] = username
-            return redirect(url_for('dashboard'))
-        else:
-            return render_template('login.html', error='Invalid username or password')
-    
-    return render_template('login.html')
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('home'))
 
 # Set Renato Canova as default coach
 DEFAULT_COACH = 'canova'
@@ -60,17 +21,14 @@ def home():
     return render_template('home.html')
 
 @app.route('/dashboard')
-@login_required 
 def dashboard():
     return render_template('index.html')
 
 @app.route('/coaches')
-@login_required 
 def coach_choice():
     return render_template('coaches.html')
 
 @app.route('/api/workouts')
-@login_required 
 def get_workouts():
     try:
         db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'workouts.db')
@@ -101,15 +59,16 @@ def get_workouts():
 
 @app.route('/api/select-coach', methods=['POST'])
 def select_coach():
-    """Store the selected coach in the current session"""
+    """Store the selected coach in session"""
     data = request.get_json()
     coach_persona = data.get('coach_persona')
     
     if coach_persona in COACH_PERSONALITIES:
-        session['selected_coach'] = coach_persona
+        session['selected_coach'] = coach_persona  # Store in session
         return jsonify({
             "success": True, 
-            "coach_name": COACH_PERSONALITIES[coach_persona]['name']
+            "coach_name": COACH_PERSONALITIES[coach_persona]['name'],
+            "message": f"Coach selection received: {COACH_PERSONALITIES[coach_persona]['name']}"
         })
     else:
         return jsonify({
@@ -128,13 +87,12 @@ def get_selected_coach():
     })
 
 @app.route('/api/coach', methods=['POST'])
-@login_required 
 def ask_coach():
     try:
         data = request.get_json()
         user_question = data.get('question', '')
 
-        # Get selected coach for current session, default to Renato Canova
+        # Get selected coach from session (not always default!)
         selected_coach_persona = session.get('selected_coach', DEFAULT_COACH)
         coach_personality = COACH_PERSONALITIES.get(selected_coach_persona)
 
@@ -148,9 +106,8 @@ def ask_coach():
         db = WorkoutDatabase(db_path)
         workouts = db.get_formatted_summary()[:10]
 
-        # Create coach & answer question
         coach = Coach(past_workouts=workouts,
-                      persona=coach_personality['behaviour'])
+                      persona=selected_coach_persona) 
         response = coach.respond(user_question)
         
         return jsonify({
@@ -165,16 +122,23 @@ def ask_coach():
         return jsonify({"error": str(e)})
     
 @app.route('/api/sync-strava', methods=['POST'])
-@login_required
 def sync_strava():
     """Sync workouts from Strava to database"""
     try:
         # Get database path
         db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'workouts.db')
+        print(f"Database path: {db_path}")
         
-        # Use your existing StravaAPI class
+        # Test Strava connection first
         strava_api = StravaAPI()
-        new_workouts_count = strava_api.sync_to_database(db_path=db_path, num_activities=50)
+        if not strava_api.test_connection():
+            return jsonify({
+                "success": False,
+                "error": "Failed to connect to Strava API. Check your access token."
+            })
+        
+        # Run the sync
+        new_workouts_count = strava_api.sync_to_database(db_path=db_path, num_activities=20)  # Start with fewer activities
         
         return jsonify({
             "success": True,
@@ -182,12 +146,16 @@ def sync_strava():
             "new_workouts": new_workouts_count
         })
         
+    except requests.exceptions.HTTPError as e:
+        error_msg = f"Strava API error: {e}"
+        print(error_msg)
+        return jsonify({"success": False, "error": error_msg})
     except Exception as e:
-        print(f"Strava sync error: {e}")
-        return jsonify({
-            "success": False,
-            "error": str(e)
-        })
+        error_msg = f"Sync error: {e}"
+        print(error_msg)
+        import traceback
+        traceback.print_exc()
+        return jsonify({"success": False, "error": error_msg})
 
 
 if __name__ == '__main__':
