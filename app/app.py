@@ -1,6 +1,8 @@
-from flask import Flask, render_template, jsonify, request, session
+from flask import Flask, render_template, jsonify, request, session, redirect, url_for
 import sys
 import os
+from functools import wraps
+from src.strava_api import StravaAPI
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from src.database import WorkoutDatabase
@@ -11,6 +13,45 @@ from src.models.coach import Coach
 app = Flask(__name__)
 app.secret_key = 'Antoine'
 
+# Login 
+
+def simple_check(username, password):
+    """Credential check"""
+    users = {
+        'user1': 'user1password', 
+        'user2': 'user2password',
+        'user3': 'user3password',
+    }
+    return users.get(username) == password
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if 'user_id' not in session:
+            return redirect(url_for('login'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form['username']
+        password = request.form['password']
+        
+        if simple_check(username, password):
+            session['user_id'] = username
+            session['username'] = username
+            return redirect(url_for('dashboard'))
+        else:
+            return render_template('login.html', error='Invalid username or password')
+    
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('home'))
+
 # Set Renato Canova as default coach
 DEFAULT_COACH = 'canova'
 
@@ -19,14 +60,17 @@ def home():
     return render_template('home.html')
 
 @app.route('/dashboard')
+@login_required 
 def dashboard():
     return render_template('index.html')
 
 @app.route('/coaches')
+@login_required 
 def coach_choice():
     return render_template('coaches.html')
 
 @app.route('/api/workouts')
+@login_required 
 def get_workouts():
     try:
         db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'workouts.db')
@@ -84,6 +128,7 @@ def get_selected_coach():
     })
 
 @app.route('/api/coach', methods=['POST'])
+@login_required 
 def ask_coach():
     try:
         data = request.get_json()
@@ -118,6 +163,32 @@ def ask_coach():
         import traceback
         traceback.print_exc()
         return jsonify({"error": str(e)})
+    
+@app.route('/api/sync-strava', methods=['POST'])
+@login_required
+def sync_strava():
+    """Sync workouts from Strava to database"""
+    try:
+        # Get database path
+        db_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'workouts.db')
+        
+        # Use your existing StravaAPI class
+        strava_api = StravaAPI()
+        new_workouts_count = strava_api.sync_to_database(db_path=db_path, num_activities=50)
+        
+        return jsonify({
+            "success": True,
+            "message": f"Successfully synced {new_workouts_count} new workouts",
+            "new_workouts": new_workouts_count
+        })
+        
+    except Exception as e:
+        print(f"Strava sync error: {e}")
+        return jsonify({
+            "success": False,
+            "error": str(e)
+        })
+
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=8080)

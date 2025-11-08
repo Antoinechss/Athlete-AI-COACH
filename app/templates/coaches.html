@@ -8,10 +8,17 @@
             max-width: 900px;
             margin: 0 auto;
             padding: 20px;
-            background-color: #f5f5f5;
+            background: url('/static/changing_rooms_background.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         .container {
-            background-color: white;
+            background-color: rgba(255,255,255,0.5);
             padding: 30px;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
@@ -93,7 +100,10 @@
         .coach-description {
             font-size: 14px;
             color: #555;
+            min-height: 60px; 
             line-height: 1.4;
+            display: flex;
+            align-items: flex-start;
         }
         .select-button {
             background-color: #007bff;
@@ -117,7 +127,7 @@
 </head>
 <body>
     <div class="container">
-        <a href="/" class="back-button">← Back to Dashboard</a>
+        <a href="/dashboard" class="back-button">← Back to Dashboard</a>
         <h1>Choose Your Coach</h1>
         
         <div class="coaches-grid">
@@ -126,7 +136,7 @@
                     <img src="/static/renato_canova.png" alt="Renato Canova">
                 </div>
                 <div class="coach-info">
-                    <div class="coach-name">Renato Canova</div>
+                    <div class="coach-name">Coach Canova</div>
                     <div class="coach-specialty">World-Class Distance Coach</div>
                     <div class="coach-description">
                         Legendary Italian coach who has trained Olympic champions and world record holders. 
@@ -138,7 +148,7 @@
             <div class="coach-card" onclick="selectCoach('sang')">
                 <div class="coach-image"><img src="/static/patrick_sang.png" alt="Patrick Sang"></div>
                 <div class="coach-info">
-                    <div class="coach-name">Coach Patrick Sang</div>
+                    <div class="coach-name">Coach Sang</div>
                     <div class="coach-specialty">Elite Kenyan Coach & Mindful Leader</div>
                     <div class="coach-description">
                         The calm mastermind behind Kenya’s greatest champions, including Eliud Kipchoge. 
@@ -176,7 +186,7 @@
         </div>
 
         <button id="selectButton" class="select-button" onclick="confirmSelection()" disabled>
-            Select This Coach
+            Select Coach
         </button>
     </div>
 
@@ -212,7 +222,7 @@
                     console.log('Response data:', data);
                     if (data.success) {
                         alert(`You selected ${data.coach_name}! Redirecting back to dashboard...`);
-                        window.location.href = '/';
+                        window.location.href = '/dashboard';
                     } else {
                         alert(`Error: ${data.error}`);
                     }

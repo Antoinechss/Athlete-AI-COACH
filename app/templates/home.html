@@ -10,8 +10,11 @@
         }
         
         body {
-            font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            font-family: 'Inter', sans-serif;
+            background: url('/static/home_background.png');
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -19,42 +22,44 @@
             color: white;
         }
         
+        body::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(47, 102, 48, 0.3); 
+            z-index: 1;
+        }
+
         .homepage-container {
             text-align: center;
             max-width: 600px;
             padding: 40px;
+            z-index: 2;
         }
-        
-        .logo-section {
-            margin-bottom: 40px;
-        }
-        
-        .logo {
-            width: 200px;
-            height: 200px;
-            margin: 0 auto 30px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 80px;
-            backdrop-filter: blur(10px);
-            border: 2px solid rgba(255,255,255,0.2);
-        }
+    
         
         .app-title {
-            font-size: 3.5em;
-            font-weight: bold;
+            font-family: 'Montserrat', sans-serif;
+            font-weight: 900;
+            font-size: 64px;
+            letter-spacing: 4px;
+            color: #ffffff;
+            text-shadow: 0 3px 6px rgba(0,0,0,0.4);
             margin-bottom: 15px;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
         }
         
         .app-subtitle {
-            font-size: 1.5em;
+            font-size: 30px;
             opacity: 0.9;
             margin-bottom: 50px;
-            font-weight: 300;
+            font-weight: 500;
+            letter-spacing: 1px;
+            font-family: 'Inter', sans-serif;
+            color: #E2C787;
+            text-shadow: 0 2px 6px rgba(0, 0, 0, 0.4);
         }
         
         .navigation-buttons {
@@ -65,34 +70,29 @@
         }
         
         .nav-button {
-            display: flex;
-            align-items: center;
-            justify-content: center;  
-            gap: 15px;
-            padding: 20px 40px;
-            background: rgba(255,255,255,0.15);
-            border: 2px solid rgba(255,255,255,0.3);
-            border-radius: 15px;
-            color: white;
-            text-decoration: none;
-            font-size: 1.2em;
+            font-family: 'Inter', sans-serif;
             font-weight: 500;
-            min-width: 300px;
+            font-size: 16px;
+            background: linear-gradient(135deg, #E2C787, #C8A04F);
+            color: #ffffff;
+            padding: 14px 36px;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            cursor: pointer;
             transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
+            text-decoration: none;  
         }
         
         .nav-button:hover {
-            background: rgba(255,255,255,0.25);
-            border-color: rgba(255,255,255,0.5);
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #F2D58A, #E2C787);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 14px rgba(0,0,0,0.4);
         }
         
         .nav-button-icon {
             font-size: 1.5em;
         }
-
         
         .nav-button-title {
             display: block;
@@ -101,45 +101,18 @@
             text-align: center;
         }
         
-        .features {
-            margin-top: 50px;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 20px;
-        }
-        
-        .feature {
-            padding: 20px;
-            background: rgba(255,255,255,0.1);
-            border-radius: 10px;
-            backdrop-filter: blur(10px);
-        }
-        
-        .feature-icon {
-            font-size: 2em;
-            margin-bottom: 10px;
-        }
-        
-        .feature-text {
-            font-size: 0.9em;
-            opacity: 0.9;
-        }
     </style>
 </head>
 <body>
     <div class="homepage-container">
         <div class="logo-section">
-            <div class="logo">
-                <img src="/static/logo.png" alt="Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;">
-            </div>
-            <h1 class="app-title">Athlete AI Coach</h1>
-            <p class="app-subtitle">Your Personal Running Mentor</p>
+            <h1 class="app-title">OLYMPUS</h1>
+            <p class="app-subtitle">Training insight from the world's best</p>
         </div>
-        
         <div class="navigation-buttons">
             <a href="/dashboard" class="nav-button">
                 <div class="nav-button-text">
-                    <span class="nav-button-title">Get Started</span>
+                    <span class="nav-button-title">GET STARTED</span>
                 </div>
             </a>
         </div>
